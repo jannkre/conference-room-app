@@ -6,7 +6,6 @@ import { Room as RoomType } from "@/types/room"
 
 export const Room = ({ room, onUpdateRoom }: { room: RoomType, onUpdateRoom: (id: string, occupied: boolean) => void }) => {
 
-
     const handleUpdateRoom = async () => {
         await fetch(`/api/room/${room.id}`, {
             method: "PUT",
@@ -20,8 +19,8 @@ export const Room = ({ room, onUpdateRoom }: { room: RoomType, onUpdateRoom: (id
             <CardTitle>{room.name}</CardTitle>
         </CardHeader>
         <CardContent>
-            <p>{room.capacity}</p>
-            <p>{room.occupied ? "Besetzt" : "Frei"}</p>
+            <p>Kapazität: {room.capacity}</p>
+            <p>Status: {room.occupied ? "Besetzt" : "Frei"}</p>
         </CardContent>
         <CardFooter>
             <Button onClick={handleUpdateRoom}>{room.occupied ? "Raum freigeben" : "Raum reservieren"}</Button>
