@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getAllRooms } from '@/lib/RoomStorage';
+import { getAllRooms, saveRooms } from '@/lib/RoomStorage';
 
 export async function GET(
     request: NextRequest,
@@ -20,3 +20,22 @@ export async function GET(
 }
 
 
+export async function PUT(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+    const { id } = await context.params;
+    const body: { occupied: boolean } = await request.json();
+    const rooms = getAllRooms();
+    const roomIndex = rooms.findIndex(r => r.id === id);
+    
+    if (roomIndex === -1) {
+        return NextResponse.json(
+            { error: 'Room not found' },
+            { status: 404 }
+        );
+    }
+    
+    const updatedRoom = { ...rooms[roomIndex], occupied: body.occupied };
+    rooms[roomIndex] = updatedRoom;
+    
+    saveRooms(rooms);
+    return NextResponse.json(updatedRoom);
+}

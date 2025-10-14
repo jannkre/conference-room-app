@@ -1,6 +1,6 @@
 import { Room, CreateRoomRequest } from '../types/room';
 // In-memory storage
-const rooms: Room[] = [];
+let rooms: Room[] = [];
 
 export const getAllRooms = (): Room[] => {
     return [...rooms];
@@ -13,4 +13,8 @@ export const createRoom = (roomData: CreateRoomRequest): Room => {
     };
     rooms.push(newRoom);
     return newRoom;
+};
+
+export const saveRooms = (updatedRooms: Room[]): void => {
+    rooms = updatedRooms;
 };
