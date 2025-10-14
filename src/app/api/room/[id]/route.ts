@@ -39,3 +39,24 @@ export async function PUT(request: NextRequest, context: { params: Promise<{ id:
     saveRooms(rooms);
     return NextResponse.json(updatedRoom);
 }
+
+export async function DELETE(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    const { id } = await context.params;
+    const rooms = getAllRooms();
+    const roomIndex = rooms.findIndex(r => r.id === id);
+
+    if (roomIndex === -1) {
+        return NextResponse.json(
+            { error: 'Room not found' },
+            { status: 404 }
+        );
+    }
+
+    rooms.splice(roomIndex, 1);
+    saveRooms(rooms);
+    
+    return NextResponse.json({ success: true, message: 'Room deleted' });
+}
