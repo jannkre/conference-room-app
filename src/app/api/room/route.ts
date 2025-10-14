@@ -3,7 +3,7 @@ import { getAllRooms, createRoom } from '@/lib/RoomStorage';
 import { CreateRoomRequest } from '@/types/room';
 
 export async function GET() {
-    const rooms = getAllRooms();
+    const rooms = await getAllRooms();
     return NextResponse.json(rooms);
 }
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
             );
         }
 
-        const newRoom = createRoom({
+        const newRoom = await createRoom({
             name: body.name,
             capacity: body.capacity,
             occupied: body.occupied ?? false
