@@ -1,7 +1,7 @@
 import { User, UserResponse } from '../types/user';
 
 // In-memory storage
-let users: User[] = [];
+const users: User[] = [];
 
 export const registerUser = (email: string, password: string): UserResponse | null => {
     // Check if user already exists
