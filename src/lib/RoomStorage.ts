@@ -35,6 +35,7 @@ export const createRoom = async (roomData: CreateRoomRequest): Promise<Room> =>
     };
 };
 
+
 export const getRoomById = async (id: string): Promise<Room | null> => 
 {
     const roomDoc = doc(db, ROOMS_COLLECTION, id);
@@ -49,6 +50,7 @@ export const getRoomById = async (id: string): Promise<Room | null> =>
         ...roomSnapshot.data()
     } as Room;
 };
+
 
 export const updateRoom = async (id: string, data: Partial<Room>): Promise<Room | null> => 
 {
