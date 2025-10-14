@@ -2,27 +2,31 @@
 import CreateRoom from "@/components/CreateRoom";
 import { Room } from "@/components/Room";
 import { Room as RoomType } from "@/types/room";
-import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
 
   const [rooms, setRooms] = useState<RoomType[]>([])
 
+  useEffect(() => {
+    fetch("/api/room")
+      .then(res => res.json())
+      .then(data => setRooms(data))
+  }, [])
 
-  const handleCreateRoom = (room: string, capacity: number) => {
-    setRooms([...rooms, {name: room, capacity: capacity, occupied: false}])
-  }
 
   return (
-    <div>
-      <h1>Conference Room Booking</h1>
-      <CreateRoom onCreateRoom={handleCreateRoom} />
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Conference Room Booking</h2>
+      <div className="w-1/4 flex justify-center mb-4">
+        <CreateRoom onCreateRoom={(room, capacity) => {setRooms([...rooms, {name: room, capacity: capacity, occupied: false}])}} />
+      </div>
 
-
-      {rooms.map((room) => (
-        <Room key={room.name} room={room} />
-      ))}
+      <div className="flex flex-wrap gap-4">
+        {rooms.map((room) => (
+          <Room key={room.name} room={room} onUpdateRoom={(id, occupied) => {setRooms(rooms.map(room => room.id === id ? {...room, occupied} : room))}} />
+        ))}
+      </div>
     </div>
   );
 }
