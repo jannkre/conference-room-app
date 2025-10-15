@@ -2,16 +2,21 @@
 import CreateRoom from "@/components/CreateRoom";
 import { Room } from "@/components/Room";
 import { Room as RoomType } from "@/types/room";
+import { getDocs } from "firebase/firestore";
 import { useEffect, useState } from "react";
+
 
 export default function Home() {
 
   const [rooms, setRooms] = useState<RoomType[]>([])
 
   useEffect(() => {
-    fetch("/api/room")
-      .then(res => res.json())
-      .then(data => setRooms(data))
+    // fetch("/api/room")
+    //   .then(res => res.json())
+    //   .then(data => setRooms(data))
+    (async() => {
+      // await getDocs()
+    })()
   }, [])
 
 
