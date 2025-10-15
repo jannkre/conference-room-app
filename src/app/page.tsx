@@ -3,16 +3,23 @@ import CreateRoom from "@/components/CreateRoom";
 import { Room } from "@/components/Room";
 import { Room as RoomType } from "@/types/room";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button";
+
 
 export default function Home() {
 
   const [rooms, setRooms] = useState<RoomType[]>([])
+  const router = useRouter();
+
 
   useEffect(() => {
     fetch("/api/room")
       .then(res => res.json())
       .then(data => setRooms(data))
   }, [])
+
 
 
   return (
