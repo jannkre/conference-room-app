@@ -13,15 +13,55 @@ export default function LoginPage()
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [emailError, setEmailError] = useState('');
   
   const router = useRouter();
   const { setUser } = useUserStore();
 
-  
+  // Email validation
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Password strength calculation
+  const getPasswordStrength = (password: string): string => {
+    if (password.length === 0) return '';
+    if (password.length < 6) return 'Schwach';
+    if (password.length < 10) return 'Mittel';
+    return 'Stark';
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+  const passwordStrengthColor = 
+    passwordStrength === 'Schwach' ? 'text-red-600' :
+    passwordStrength === 'Mittel' ? 'text-yellow-600' : 
+    'text-green-600';
+
+  // Validate email on blur
+  const handleEmailBlur = () => {
+    if (email && !validateEmail(email)) {
+      setEmailError('Bitte geben Sie eine gültige E-Mail-Adresse ein');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  // Check if form is valid
+  const isFormValid = email.trim() !== '' && password.trim() !== '' && !emailError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+    
+    // Final validation
+    if (!validateEmail(email)) {
+      setEmailError('Bitte geben Sie eine gültige E-Mail-Adresse ein');
+      return;
+    }
+
     setIsLoading(true);
 
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
@@ -43,9 +83,14 @@ export default function LoginPage()
         return;
       }
 
-      // Set user in store and navigate to home
+      // Show success message
+      setSuccess(isLogin ? 'Erfolgreich angemeldet!' : 'Erfolgreich registriert!');
+      
+      // Set user in store and navigate to home after brief delay
       setUser(data);
-      router.push('/');
+      setTimeout(() => {
+        router.push('/');
+      }, 500);
     } catch (err) {
       setError('Netzwerkfehler. Bitte versuchen Sie es erneut.');
       setIsLoading(false);
@@ -55,15 +100,17 @@ export default function LoginPage()
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError('');
+    setSuccess('');
     setEmail('');
     setPassword('');
+    setEmailError('');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md" data-testid="login-card">
         <CardHeader>
-          <CardTitle>{isLogin ? 'Anmelden' : 'Registrieren'}</CardTitle>
+          <CardTitle data-testid="form-title">{isLogin ? 'Anmelden' : 'Registrieren'}</CardTitle>
           <CardDescription>
             {isLogin 
               ? 'Geben Sie Ihre Anmeldedaten ein' 
@@ -71,7 +118,7 @@ export default function LoginPage()
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" data-testid="auth-form">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 E-Mail
@@ -82,8 +129,15 @@ export default function LoginPage()
                 placeholder="sie@beispiel.de"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                onBlur={handleEmailBlur}
                 required
+                data-testid="email-input"
               />
+              {emailError && (
+                <div className="text-sm text-red-600" data-testid="email-error">
+                  {emailError}
+                </div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -97,19 +151,41 @@ export default function LoginPage()
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                data-testid="password-input"
               />
+              
+              {/* Password length counter */}
+              {password.length > 0 && (
+                <div className="text-xs text-gray-500" data-testid="password-length">
+                  Länge: {password.length} Zeichen
+                </div>
+              )}
+              
+              {/* Password strength indicator - only in register mode */}
+              {!isLogin && password.length > 0 && (
+                <div className="text-sm" data-testid="password-strength">
+                  Passwortstärke: <span className={passwordStrengthColor}>{passwordStrength}</span>
+                </div>
+              )}
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded" data-testid="error-message">
                 {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="text-sm text-green-600 bg-green-50 p-2 rounded" data-testid="success-message">
+                {success}
               </div>
             )}
 
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || !isFormValid}
+              data-testid="submit-button"
             >
               {isLoading ? 'Lädt...' : (isLogin ? 'Anmelden' : 'Registrieren')}
             </Button>
@@ -119,6 +195,7 @@ export default function LoginPage()
             <button
               onClick={toggleMode}
               className="text-sm text-blue-600 hover:underline"
+              data-testid="toggle-mode-button"
             >
               {isLogin 
                 ? "Haben Sie noch kein Konto? Registrieren" 
