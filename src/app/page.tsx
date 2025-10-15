@@ -15,9 +15,9 @@ export default function Home() {
   }, [])
 
 
-  const dummy = () => {
-    asdöfljasdf;:
-  }
+//   const dummy = () => {
+// // 
+//   }
 
   return (
     <div className="p-4">
