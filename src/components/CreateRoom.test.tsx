@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import CreateRoom from './CreateRoom';
-
+import { server } from '@/mocks/node';
 /**
  * Co-located Test Example
  * 
@@ -12,6 +12,10 @@ import CreateRoom from './CreateRoom';
  * 
  * For comprehensive test suites, see __tests__/CreateRoom.test.tsx
  */
+
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 describe('CreateRoom - Co-located Smoke Tests', () => {
   const mockOnCreateRoom = jest.fn();

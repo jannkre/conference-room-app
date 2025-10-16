@@ -463,13 +463,273 @@ test('shows validation error when email format is invalid', async () => {
 - [Testing Library User Events](https://testing-library.com/docs/user-event/intro)
 - [Next.js Testing](https://nextjs.org/docs/testing)
 
+## End-to-End Testing with Cypress
+
+### Overview
+
+The project uses **Cypress v13** for end-to-end testing of complete user workflows. E2E tests verify the application works correctly from the user's perspective by testing the full stack.
+
+### Setup
+
+#### Dependencies
+
+```json
+{
+  "cypress": "^13.16.1"
+}
+```
+
+#### Configuration
+
+- **cypress.config.ts**: Main Cypress configuration
+- **e2e/support/e2e.ts**: Cypress support file
+- **e2e/support/commands.ts**: Custom Cypress commands
+- **e2e/tsconfig.json**: TypeScript configuration for e2e tests
+
+### Running E2E Tests
+
+```bash
+# Start the development server first
+npm run dev
+
+# In a separate terminal, open Cypress UI
+npm run cypress:open
+
+# Run all Cypress tests in headless mode
+npm run cypress:run
+```
+
+### Test Organization
+
+E2E tests are located in the `/e2e` directory:
+
+```
+e2e/
+  support/
+    e2e.ts          # Cypress initialization
+    commands.ts     # Custom commands
+  login.cy.ts       # Login and registration flows
+  create-room.cy.ts # Room creation flows
+  tsconfig.json     # TypeScript config
+```
+
+### E2E Test Coverage
+
+#### Login Flow (`e2e/login.cy.ts`)
+
+**Total Tests: 10**
+
+- ✓ Displays login form by default
+- ✓ Successfully logs in with valid credentials
+- ✓ Shows error message with invalid credentials
+- ✓ Validates email format
+- ✓ Disables submit button when fields are empty
+- ✓ Toggles between login and registration modes
+- ✓ Successfully registers a new user
+- ✓ Shows password length counter
+- ✓ Shows password strength in registration mode
+- ✓ Handles network errors gracefully
+
+#### Create Room Flow (`e2e/create-room.cy.ts`)
+
+**Total Tests: 13**
+
+- ✓ Displays the create room form
+- ✓ Successfully creates a new room
+- ✓ Shows character counter for room name
+- ✓ Validates room name is not empty
+- ✓ Validates room name length (max 50 characters)
+- ✓ Validates capacity is not empty
+- ✓ Validates capacity minimum value (1)
+- ✓ Validates capacity maximum value (100)
+- ✓ Clears form when clear button is clicked
+- ✓ Disables buttons while creating room
+- ✓ Shows error message when room creation fails
+- ✓ Accepts valid capacity values
+- ✓ Clears validation errors when user corrects input
+
+### Cypress Testing Techniques
+
+#### 1. API Stubbing with cy.intercept()
+
+```javascript
+// Stub successful login
+cy.intercept('POST', '/api/auth/login', {
+  statusCode: 200,
+  body: { id: '1', email: 'test@example.com' }
+}).as('loginRequest')
+
+// Wait for the request
+cy.wait('@loginRequest')
+```
+
+#### 2. Element Queries
+
+```javascript
+// By data-testid
+cy.get('[data-testid="email-input"]')
+
+// By text content
+cy.contains('Anmelden')
+
+// Chaining assertions
+cy.get('[data-testid="submit-button"]')
+  .should('be.visible')
+  .and('not.be.disabled')
+```
+
+#### 3. User Interactions
+
+```javascript
+// Type in input
+cy.get('[data-testid="email-input"]').type('test@example.com')
+
+// Click button
+cy.get('[data-testid="submit-button"]').click()
+
+// Clear input
+cy.get('[data-testid="email-input"]').clear()
+```
+
+#### 4. Custom Commands
+
+```javascript
+// Define in e2e/support/commands.ts
+Cypress.Commands.add('login', (email: string, password: string) => {
+  cy.visit('/login')
+  cy.get('[data-testid="email-input"]').type(email)
+  cy.get('[data-testid="password-input"]').type(password)
+  cy.get('[data-testid="submit-button"]').click()
+})
+
+// Use in tests
+cy.login('test@example.com', 'password123')
+```
+
+#### 5. Network Error Testing
+
+```javascript
+cy.intercept('POST', '/api/auth/login', {
+  forceNetworkError: true
+}).as('loginRequest')
+```
+
+#### 6. Request Verification
+
+```javascript
+cy.wait('@createRoom')
+  .its('request.body')
+  .should('deep.equal', {
+    name: 'New Room',
+    capacity: 20,
+    occupied: false
+  })
+```
+
+#### 7. URL Verification
+
+```javascript
+// Check redirect after login
+cy.url().should('eq', Cypress.config().baseUrl + '/')
+```
+
+### Best Practices for E2E Testing
+
+#### 1. Start Development Server
+
+Always ensure the Next.js development server is running before starting Cypress:
+
+```bash
+npm run dev  # In one terminal
+npm run cypress:open  # In another terminal
+```
+
+#### 2. Use API Stubbing
+
+For faster and more reliable tests, stub API calls instead of hitting real endpoints:
+
+```javascript
+// ✓ Good - Fast and reliable
+cy.intercept('GET', '/api/room', { body: mockRooms })
+
+// ✗ Avoid - Slower and less reliable
+// Let tests hit real API endpoints
+```
+
+#### 3. Use data-testid Selectors
+
+Prefer `data-testid` attributes for stable test selectors:
+
+```javascript
+// ✓ Good - Won't break if text/styling changes
+cy.get('[data-testid="submit-button"]')
+
+// ✗ Avoid - Fragile
+cy.get('.btn-primary.submit')
+```
+
+#### 4. Test User Workflows
+
+Test complete user journeys, not individual components:
+
+```javascript
+// ✓ Good - Complete workflow
+it('should create a room and see it in the list', () => {
+  cy.visit('/')
+  // Fill form, submit, verify room appears
+})
+
+// ✗ Avoid - Too granular for e2e
+it('should render the room name input', () => {
+  cy.get('[data-testid="room-name-input"]').should('exist')
+})
+```
+
+#### 5. Clean Test Isolation
+
+Each test should be independent:
+
+```javascript
+beforeEach(() => {
+  // Set up fresh state for each test
+  cy.intercept('GET', '/api/room', { body: [] })
+  cy.visit('/')
+})
+```
+
+### Troubleshooting Cypress
+
+#### Common Issues
+
+**1. "Timed out waiting for element"**
+- Element may not have rendered yet
+- Use `cy.wait()` for API calls
+- Increase default timeout if needed
+
+**2. "cy.visit() failed"**
+- Ensure development server is running
+- Check baseUrl in `cypress.config.ts`
+- Verify port 3000 is available
+
+**3. "Element is covered by another element"**
+- Element may be hidden or obscured
+- Use `.should('be.visible')` to verify
+- Scroll element into view if needed
+
+### Resources
+
+- [Cypress Documentation](https://docs.cypress.io/)
+- [Best Practices](https://docs.cypress.io/guides/references/best-practices)
+- [Cypress TypeScript Support](https://docs.cypress.io/guides/tooling/typescript-support)
+
 ## Summary
 
-This test suite demonstrates comprehensive unit testing techniques for React components:
-- **63 total tests** across 3 test suites
-- **100% pass rate**
+This test suite demonstrates comprehensive testing techniques for React applications:
+- **Unit Testing**: 63 tests with Jest and React Testing Library
+- **E2E Testing**: 23 tests with Cypress covering critical user workflows
+- **100% pass rate** across all test suites
 - Coverage of rendering, interactions, validation, async operations, and error handling
 - Real-world patterns for testing Next.js applications with Zustand state management
-- Both co-located and separated test organization patterns
+- Both isolated unit tests and full end-to-end workflow tests
 - Pre-seeded data for consistent testing
 
