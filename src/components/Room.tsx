@@ -1,7 +1,8 @@
 "use client"
 import { Button } from "./ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Room as RoomType } from "@/types/room"
+import Link from "next/link"
 
 
 export const Room = ({ room, onUpdateRoom }: { room: RoomType, onUpdateRoom: (id: string, occupied: boolean) => void }) => {
@@ -22,8 +23,13 @@ export const Room = ({ room, onUpdateRoom }: { room: RoomType, onUpdateRoom: (id
             <p>Kapazität: {room.capacity}</p>
             <p>Status: {room.occupied ? "Besetzt" : "Frei"}</p>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex gap-2">
             <Button onClick={handleUpdateRoom}>{room.occupied ? "Raum freigeben" : "Raum reservieren"}</Button>
+            {room.id && (
+                <Link href={`/room/${room.id}`}>
+                    <Button variant="outline">View Schedule</Button>
+                </Link>
+            )}
         </CardFooter>
     </Card>
 }
