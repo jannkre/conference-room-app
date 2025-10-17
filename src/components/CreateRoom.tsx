@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
+import { Room } from "@/types/room"
 
 
 
-const CreateRoom = ({ onCreateRoom }: {onCreateRoom: (room: string, capacity: number) => void}) => 
+const CreateRoom = ({ onCreateRoom }: {onCreateRoom: (room: Room) => void}) => 
 {
     const [room, setRoom] = useState("")
     const [capacity, setCapacity] = useState(0)
@@ -17,13 +18,18 @@ const CreateRoom = ({ onCreateRoom }: {onCreateRoom: (room: string, capacity: nu
             return
         }
 
-        await fetch("/api/room", {
+        const response = await fetch("/api/room", {
             method: "POST",
             body: JSON.stringify({ name: room, capacity: capacity, occupied: false })
         })
+        
+        if (response.ok) {
+            const createdRoom = await response.json()
+            onCreateRoom(createdRoom)
+        }
+        
         setRoom("")
         setCapacity(0)
-        onCreateRoom(room, capacity)
     }
 
     return <div>
